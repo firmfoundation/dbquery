@@ -12,7 +12,7 @@ import (
 func QueryStateHandler(c *fiber.Ctx) error {
 	page := c.Query("page")
 	pageSize := c.Query("page_size")
-	sort := c.Query("sort")
+	sorting := c.Query("sort")
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
@@ -26,8 +26,20 @@ func QueryStateHandler(c *fiber.Ctx) error {
 
 	offset := (pageInt - 1) * pageSizeInt
 
+	/*
+		default sort is DESC
+		slowest = quries taking longer execution time fetched first (slowest queries), DESC
+		fastest = quriest executied fast feched first, ASC
+	*/
+	var sort string = "DESC"
+	if sorting == "slowest" {
+		sort = "DESC"
+	} else if sorting == "fastest" {
+		sort = "ASC"
+	}
+
 	queryState := &model.QeryState{}
-	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset)
+	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset, sort)
 	if err != nil {
 		fmt.Println(err)
 	}
