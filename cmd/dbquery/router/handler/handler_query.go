@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,20 +15,36 @@ import (
 
 var queryTypes map[string]string = map[string]string{"select": "SELECT%", "insert": "INSERT%", "update": "UPDATE%", "delete": "DELETE%"}
 
-func QueryStateHandler(c *fiber.Ctx) error {
-	page := c.Query("page")
-	pageSize := c.Query("page_size")
-	filterQuery := c.Query("filter_query")
-	sorting := c.Query("sort")
-
-	pageInt, err := strconv.Atoi(page)
+func getQueryParams(c *fiber.Ctx) (int, int, string, string, error) {
+	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-
+		return 0, 0, "", "", errors.New("invalid page number")
 	}
 
-	pageSizeInt, err := strconv.Atoi(pageSize)
+	pageSize, err := strconv.Atoi(c.Query("page_size", "50"))
 	if err != nil {
+		return 0, 0, "", "", errors.New("invalid page size")
+	}
 
+	sort := c.Query("sort", "slowest")
+	if sort != "slowest" && sort != "fastest" {
+		return 0, 0, "", "", errors.New("invalid sort order")
+	}
+
+	filterQuery := c.Query("filter_query", "all")
+	if filterQuery != "all" && filterQuery != "select" && filterQuery != "insert" && filterQuery != "update" && filterQuery != "delete" {
+		return 0, 0, "", "", errors.New("invalid filter query")
+	}
+
+	return page, pageSize, sort, filterQuery, nil
+}
+
+func QueryStateHandler(c *fiber.Ctx) error {
+	pageInt, pageSizeInt, sorting, filterQuery, err := getQueryParams(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	offset := (pageInt - 1) * pageSizeInt
@@ -50,27 +67,28 @@ func QueryStateHandler(c *fiber.Ctx) error {
 	}
 
 	/*
-		check cache first
+		redis;
+		check cache first and query from memory
 	*/
-
 	cacheKey := fmt.Sprintf("queries_statistics_%d_%d_%s %s", pageInt, pageSizeInt, filter, sort)
 	cachedResult, err := db.RedisClient.Get(cacheKey).Result()
 	if err == nil {
 		var raw []map[string]interface{}
 		err = json.Unmarshal([]byte(cachedResult), &raw)
 		if err != nil {
-			panic(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.Status(200).JSON(raw)
+		return c.Status(fiber.StatusAccepted).JSON(raw)
 	}
 
 	/*
-		Query data from postgreSQL
+		postgreSQL;
+		Query data from disk
 	*/
 	queryState := &model.QeryState{}
 	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset, filter, sort)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	/*
@@ -79,13 +97,13 @@ func QueryStateHandler(c *fiber.Ctx) error {
 	*/
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		// Handle JSON marshaling error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	err = db.RedisClient.Set(cacheKey, resultJSON, 10*time.Second).Err()
 	if err != nil {
-		// Handle cache set error
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(200).JSON(result)
+	return c.Status(fiber.StatusAccepted).JSON(result)
 }
