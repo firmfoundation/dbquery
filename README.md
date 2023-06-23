@@ -22,6 +22,7 @@ To connect to any PostgreSQL database, use the following endpoint:
 
 POST /connect
 
+you will get `database_instance_id` and you need it for query api. 
 
 The request body should be in JSON format and include the following fields:
 ``
@@ -38,7 +39,7 @@ The request body should be in JSON format and include the following fields:
 
 To retrieve query statistics, use the following endpoint:
 
-GET /querystate?page=1&page_size=200&sort=slowest&filter_query=all
+GET /querystate?page=1&page_size=50&sort=slowest&filter_query=all&database_instance_id=d96fceb7-c576-404d-b8ab-c46db4fd1422
 
 
 You can use query parameters to filter and paginate the results. The available query parameters are:
@@ -47,6 +48,7 @@ You can use query parameters to filter and paginate the results. The available q
 - page_size: The number of query statistics to retrieve per page (default is 50).
 - sort: The sorting order for the query statistics. You can sort by slowest or fastest (default is slowest).
 - filter_query: The query type to filter by. You can filter by all, select, insert, update, or delete (default is all).
+- database_instance_id: The database connection. You will get this id from database connect api.
 
 ## Conclusion
 
