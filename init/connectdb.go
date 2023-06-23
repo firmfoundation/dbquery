@@ -11,16 +11,16 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB(config *config.DbConfig) bool {
+func ConnectDB(config *config.DbConfig) (bool, *gorm.DB) {
 	var err error
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", config.DBHost, config.DBUserName, config.DBUserPassword, config.DBName, config.DBPort)
 
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Println("Failed to connect to the Database")
-		return false
+		return false, nil
 	}
 
 	fmt.Println("? Connected Successfully to the Database")
-	return true
+	return true, DB
 }

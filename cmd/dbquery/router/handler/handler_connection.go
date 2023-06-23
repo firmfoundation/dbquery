@@ -5,27 +5,25 @@ import (
 	db "github.com/firmfoundation/dbquery/init"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+var DbInstanceMap map[string]*gorm.DB = make(map[string]*gorm.DB)
 
 func CreateConnectionHandler(c *fiber.Ctx) error {
 	config := new(config.DbConfig)
 
 	err := c.BodyParser(config)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "data": err})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err})
 	}
 
-	if ok := db.ConnectDB(config); ok {
-		/*
-
-			to do
-			the query statistics api need to have database instance id
-			to be used for clients to access multiple databases
-
-		*/
-		uid := uuid.New()
-		return c.Status(200).JSON(fiber.Map{"status": "database connected", "database_instance_id": uid})
+	if ok, dbInstance := db.ConnectDB(config); ok {
+		//multiple instance support
+		cacheKey := uuid.New()
+		DbInstanceMap[cacheKey.String()] = dbInstance
+		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{"status": "database connected", "database_instance_id": cacheKey})
 	}
 
-	return c.Status(500).JSON(fiber.Map{"status": "database not connected"})
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "database not connected"})
 }
