@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	db "github.com/firmfoundation/dbquery/init"
 	"github.com/firmfoundation/dbquery/model"
@@ -38,12 +40,43 @@ func QueryStateHandler(c *fiber.Ctx) error {
 		sort = "ASC"
 	}
 
+	/*
+		check cache first
+	*/
+
+	cacheKey := fmt.Sprintf("queries_statistics_%d_%d_%s", pageInt, pageSizeInt, sort)
+	cachedResult, err := db.RedisClient.Get(cacheKey).Result()
+	if err == nil {
+		var raw []map[string]interface{}
+		err = json.Unmarshal([]byte(cachedResult), &raw)
+		if err != nil {
+			panic(err)
+		}
+		return c.Status(200).JSON(raw)
+	}
+
+	/*
+		Query data from postgreSQL
+	*/
 	queryState := &model.QeryState{}
 	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset, sort)
 	if err != nil {
 		fmt.Println(err)
 	}
-	//resultJSON , err = json.Marshal(result)
+
+	/*
+		Cache the results in Redis
+		Convert query results to JSON
+	*/
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		// Handle JSON marshaling error
+	}
+
+	err = db.RedisClient.Set(cacheKey, resultJSON, 10*time.Second).Err()
+	if err != nil {
+		// Handle cache set error
+	}
 
 	return c.Status(200).JSON(result)
 }
