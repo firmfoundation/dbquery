@@ -1,6 +1,6 @@
 # API Service for Query Statistics
 
-This is a Golang API service that allows allows you to connect to any PostgreSQL database and retrieve query statistics. The service supports filtering by query type, pagination, and sorting by slowest or fastest queries. The service is designed to handle high loads of API calls and uses Redis for caching to improve performance.
+This is a Golang API service that allows you to connect to any PostgreSQL database and retrieve query statistics. The service supports filtering by query type, pagination, and sorting by slowest or fastest queries. The service is designed to handle high loads of API calls and uses Redis for caching to improve performance.
 
 You can easily analyze your all query performance and identify areas for optimization with single API call. And with Redis caching, the service can handle high loads of API calls without sacrificing performance.
 ## Getting Started
@@ -24,7 +24,7 @@ POST /connect
 
 
 The request body should be in JSON format and include the following fields:
-
+``
 {
     "DBHost": "127.0.0.1",
     "DBUserName": "postgres",
@@ -32,7 +32,7 @@ The request body should be in JSON format and include the following fields:
     "DBName": "dbname",
     "DBPort": "5432"
 }
-
+``
 
 ### Retrieve Query Statistics
 
@@ -51,3 +51,7 @@ You can use query parameters to filter and paginate the results. The available q
 ## Conclusion
 
 This API service provides a fast and efficient way for clients to retrieve query statistics from any PostgreSQL database. With support for filtering, pagination, and sorting, clients can easily analyze their query performance and identify areas for optimization. And with Redis caching, the service can handle high loads of API calls without sacrificing performance.
+
+## Screenshot
+
+![image](https://github.com/firmfoundation/dbquery/assets/25494022/efdf7f6d-d2a7-4dbf-b204-3ec901edbb06)
