@@ -70,7 +70,7 @@ func QueryStateHandler(c *fiber.Ctx) error {
 	queryState := &model.QeryState{}
 	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset, filter, sort)
 	if err != nil {
-		fmt.Println(err)
+		return c.Status(500).JSON(fiber.Map{"status": err.Error()})
 	}
 
 	/*

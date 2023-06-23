@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"strings"
 
 	"gorm.io/gorm"
@@ -16,6 +17,9 @@ type QeryState struct {
 }
 
 func (q *QeryState) GetQueryState(db *gorm.DB, pageSize int, offset int, filter string, sort string) ([]map[string]interface{}, error) {
+	if db == nil {
+		return nil, errors.New("database not connected !")
+	}
 	var err error
 	var f []map[string]interface{}
 	var sql string
