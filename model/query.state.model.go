@@ -1,6 +1,10 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 // query, total_time, calls, rows, mean_time
 type QeryState struct {
@@ -11,10 +15,11 @@ type QeryState struct {
 	MeanTime  string `json:"mean_time"`
 }
 
-func (q *QeryState) GetQueryState(db *gorm.DB, pageSize int, offset int, sort string) ([]map[string]interface{}, error) {
+func (q *QeryState) GetQueryState(db *gorm.DB, pageSize int, offset int, filter string, sort string) ([]map[string]interface{}, error) {
+	var err error
 	var f []map[string]interface{}
 	var sql string
-	if sort == "DESC" {
+	if sort == "DESC" && filter == "*" {
 		sql = `
 		SELECT dbid,query,rows,calls,
 		max_exec_time,mean_exec_time,total_exec_time 
@@ -23,7 +28,8 @@ func (q *QeryState) GetQueryState(db *gorm.DB, pageSize int, offset int, sort st
 		LIMIT ?
 		OFFSET ?;
 		`
-	} else {
+		err = db.Debug().Raw(sql, pageSize, offset).Find(&f).Error
+	} else if sort == "ASC" && filter == "*" {
 		sql = `
 		SELECT dbid,query,rows,calls,
 		max_exec_time,mean_exec_time,total_exec_time 
@@ -32,9 +38,31 @@ func (q *QeryState) GetQueryState(db *gorm.DB, pageSize int, offset int, sort st
 		LIMIT ?
 		OFFSET ?;
 		`
+		err = db.Debug().Raw(sql, pageSize, offset).Find(&f).Error
+	} else if sort == "ASC" {
+		sql = `
+		SELECT dbid,query,rows,calls,
+		max_exec_time,mean_exec_time,total_exec_time 
+		FROM pg_stat_statements
+		WHERE query LIKE ? OR query LIKE ?
+		ORDER BY max_exec_time ASC 
+		LIMIT ?
+		OFFSET ?;
+		`
+		err = db.Debug().Raw(sql, filter, strings.ToLower(filter), pageSize, offset).Find(&f).Error
+	} else {
+		sql = `
+		SELECT dbid,query,rows,calls,
+		max_exec_time,mean_exec_time,total_exec_time 
+		FROM pg_stat_statements
+		WHERE query LIKE ? OR query LIKE ?
+		ORDER BY max_exec_time DESC
+		LIMIT ?
+		OFFSET ?;
+		`
+		err = db.Debug().Raw(sql, filter, strings.ToLower(filter), pageSize, offset).Find(&f).Error
 	}
 
-	err := db.Debug().Raw(sql, pageSize, offset).Find(&f).Error
 	if err != nil {
 		return nil, err
 	}

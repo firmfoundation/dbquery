@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	db "github.com/firmfoundation/dbquery/init"
@@ -11,9 +12,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+var queryTypes map[string]string = map[string]string{"select": "SELECT%", "insert": "INSERT%", "update": "UPDATE%", "delete": "DELETE%"}
+
 func QueryStateHandler(c *fiber.Ctx) error {
 	page := c.Query("page")
 	pageSize := c.Query("page_size")
+	filterQuery := c.Query("filter_query")
 	sorting := c.Query("sort")
 
 	pageInt, err := strconv.Atoi(page)
@@ -27,6 +31,11 @@ func QueryStateHandler(c *fiber.Ctx) error {
 	}
 
 	offset := (pageInt - 1) * pageSizeInt
+
+	var filter string = "*" //default
+	if v, ok := queryTypes[strings.ToLower(filterQuery)]; ok {
+		filter = v
+	}
 
 	/*
 		default sort is DESC
@@ -44,7 +53,7 @@ func QueryStateHandler(c *fiber.Ctx) error {
 		check cache first
 	*/
 
-	cacheKey := fmt.Sprintf("queries_statistics_%d_%d_%s", pageInt, pageSizeInt, sort)
+	cacheKey := fmt.Sprintf("queries_statistics_%d_%d_%s %s", pageInt, pageSizeInt, filter, sort)
 	cachedResult, err := db.RedisClient.Get(cacheKey).Result()
 	if err == nil {
 		var raw []map[string]interface{}
@@ -59,7 +68,7 @@ func QueryStateHandler(c *fiber.Ctx) error {
 		Query data from postgreSQL
 	*/
 	queryState := &model.QeryState{}
-	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset, sort)
+	result, err := queryState.GetQueryState(db.DB, pageSizeInt, offset, filter, sort)
 	if err != nil {
 		fmt.Println(err)
 	}
