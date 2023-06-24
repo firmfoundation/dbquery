@@ -25,7 +25,8 @@ POST /connect
 you will get `database_instance_id` and you need it for query api. 
 
 The request body should be in JSON format and include the following fields:
-``
+
+```
 {
     "DBHost": "127.0.0.1",
     "DBUserName": "postgres",
@@ -33,7 +34,7 @@ The request body should be in JSON format and include the following fields:
     "DBName": "dbname",
     "DBPort": "5432"
 }
-``
+```
 
 ### Retrieve Query Statistics
 
