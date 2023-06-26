@@ -51,6 +51,20 @@ You can use query parameters to filter and paginate the results. The available q
 - filter_query: The query type to filter by. You can filter by all, select, insert, update, or delete (default is all).
 - database_instance_id: The database connection. You will get this id from database connect api.
 
+## Testing
+
+To run the tests, you will need to have Redis and PostgreSQL databases running. You can use Docker to easily set up these databases:
+
+# Start a Redis container
+docker run --name my-redis -d -p 6379:6379 redis
+
+# Start a PostgreSQL container
+docker run --name my-postgres -e POSTGRES_PASSWORD=password123 -d -p 5432:5432 postgres
+
+
+Once the databases are running, you can run the tests with the following command:
+
+go test ./...
 ## Conclusion
 
 This API service provides a fast and efficient way for clients to retrieve query statistics from any PostgreSQL database. With support for filtering, pagination, and sorting, clients can easily analyze their query performance and identify areas for optimization. And with Redis caching, the service can handle high loads of API calls without sacrificing performance.
