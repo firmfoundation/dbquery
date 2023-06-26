@@ -28,7 +28,7 @@ func TestCreateConnectionHandler(t *testing.T) {
 		"DBHost":         "127.0.0.1",
 		"DBUserName":     "postgres",
 		"DBUserPassword": "password123",
-		"DBName":         "testdb",
+		"DBName":         "qrmenu",
 		"DBPort":         "5432",
 	}
 	requestBodyBytes, _ := json.Marshal(requestBody)
