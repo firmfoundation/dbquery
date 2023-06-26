@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/firmfoundation/dbquery/cmd/dbquery/router/handler"
+	"github.com/firmfoundation/dbquery/cmd/dbquery/handler"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,6 +12,6 @@ func Routes(app *fiber.App) {
 	queryState := app.Group("/querystate")
 
 	//routes
-	queryApi.Get("/", handler.CreateConnectionHandler)
+	queryApi.Post("/", handler.CreateConnectionHandler)
 	queryState.Get("/", handler.QueryStateHandler)
 }

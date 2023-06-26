@@ -58,3 +58,6 @@ This API service provides a fast and efficient way for clients to retrieve query
 ## Screenshot
 
 ![image](https://github.com/firmfoundation/dbquery/assets/25494022/efdf7f6d-d2a7-4dbf-b204-3ec901edbb06)
+
+## To do soon 
+frontend 🤩️
