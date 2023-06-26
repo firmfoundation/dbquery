@@ -76,7 +76,7 @@ func QueryStateHandler(c *fiber.Ctx) error {
 		redis;
 		check cache first and query from memory
 	*/
-	cacheKey := fmt.Sprintf("queries_statistics_%d_%d_%s %s", pageInt, pageSizeInt, filter, sort)
+	cacheKey := fmt.Sprintf("queries_statistics_%d_%d_%s_%s_%s", pageInt, pageSizeInt, filter, sort, dbInstance)
 	cachedResult, err := db.RedisClient.Get(cacheKey).Result()
 	if err == nil {
 		var raw []map[string]interface{}
