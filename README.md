@@ -69,6 +69,10 @@ go test ./...
 
 This API service provides a fast and efficient way for clients to retrieve query statistics from any PostgreSQL database. With support for filtering, pagination, and sorting, clients can easily analyze their query performance and identify areas for optimization. And with Redis caching, the service can handle high loads of API calls without sacrificing performance.
 
+## CI-CD 
+
+Jenkins pipeline is configured to build and deploy the application. 
+
 ## Screenshot
 
 ![image](https://github.com/firmfoundation/dbquery/assets/25494022/efdf7f6d-d2a7-4dbf-b204-3ec901edbb06)
