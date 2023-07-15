@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/goccy/go-json v0.10.2
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
